@@ -1,0 +1,41 @@
+name: CI/CD Pipeline for Terraform
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  terraform:
+    name: Terraform CI/CD
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout the repository
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    # Setup Terraform
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.4.6
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+    # Initialize Terraform
+    - name: Terraform Init
+      run: terraform init
+
+    # Validate Terraform Code
+    - name: Terraform Validate
+      run: terraform validate
+
+    # Plan Terraform Deployment
+    - name: Terraform Plan
+      run: terraform plan -out=tfplan
+
+    # Apply Terraform Deployment (if desired)
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform apply -auto-approve tfplan
