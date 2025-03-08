@@ -12,30 +12,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Checkout the repository
+    # Step 1: Checkout the repository
     - name: Checkout Repository
       uses: actions/checkout@v3
 
-    # Setup Terraform
+    # Step 2: Set up Terraform
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: 1.4.6
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-    # Initialize Terraform
+    # Step 3: Azure Login
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # Step 4: Terraform Init
     - name: Terraform Init
       run: terraform init
 
-    # Validate Terraform Code
+    # Step 5: Terraform Validate
     - name: Terraform Validate
       run: terraform validate
 
-    # Plan Terraform Deployment
+    # Step 6: Terraform Plan
     - name: Terraform Plan
       run: terraform plan -out=tfplan
 
-    # Apply Terraform Deployment (if desired)
+    # Step 7: (Optional) Terraform Apply
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       run: terraform apply -auto-approve tfplan
